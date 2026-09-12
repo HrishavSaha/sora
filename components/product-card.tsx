@@ -3,23 +3,27 @@ import Image from "next/image";
 export type Product = {
 	name: string;
 	price: number;
+	image: string;
+	badge?: string;
 };
 
-export default function ProductCard({ name, price }: Product) {
+export default function ProductCard({ name, price, image, badge }: Product) {
 	return (
 		<article className="group">
 			<div className="relative aspect-4/5 w-full">
 				<div className="absolute inset-0 overflow-hidden rounded-2xl bg-secondary">
 					<Image
-						src="/product-images/product-1.jpeg"
+						src={image}
 						alt={name}
 						fill
 						sizes="(min-width: 1024px) 33vw, (min-width: 640px) 50vw, 100vw"
 						className="scale-[1.02] object-cover transition-transform duration-500 group-hover:scale-[1.08]"
 					/>
-					<span className="absolute left-4 top-4 rounded-full bg-secondary/90 px-2.5 py-1 text-[11px] font-montserrat uppercase tracking-wide text-primary">
-						New
-					</span>
+					{badge && (
+						<span className="absolute left-4 top-4 rounded-full bg-secondary/90 px-2.5 py-1 text-[11px] font-montserrat uppercase tracking-wide text-primary">
+							{badge}
+						</span>
+					)}
 				</div>
 				<span className="absolute -bottom-6 right-5 flex h-16 w-16 items-center justify-center rounded-full bg-accent font-montserrat text-sm font-semibold text-secondary shadow-lg">
 					${price}

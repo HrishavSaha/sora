@@ -3,9 +3,12 @@ import Link from "next/link";
 import ProductCard, { type Product } from "@/components/product-card";
 
 const products: Product[] = [
-	{ name: "Ribbed Seamless Set", price: 68 },
-	{ name: "High-Rise Flow Leggings", price: 54 },
-	{ name: "Wrap-Front Bra Top", price: 42 },
+	{ name: "Navy Flow Set", price: 72, image: "/product-images/sora-flow-set-navy.png", badge: "New" },
+	{ name: "Black Charm Set", price: 64, image: "/product-images/sora-charm-set-black.png", badge: "New" },
+	{ name: "Brown Flow Shorts", price: 52, image: "/product-images/sora-flow-set-brown-shorts.png", badge: "New" },
+	{ name: "Cream Charm Set", price: 64, image: "/product-images/sora-charm-set-white.png", badge: "New" },
+	{ name: "Black Flow Capris", price: 58, image: "/product-images/sora-flow-set-black.png", badge: "New" },
+	{ name: "Cream Charm Shorts", price: 48, image: "/product-images/sora-charm-set-white-shorts.png", badge: "New" },
 ];
 
 export default function NewArrivals() {
