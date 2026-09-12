@@ -3,55 +3,15 @@
 import { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
-
-type CartItem = {
-	id: string;
-	name: string;
-	image: string;
-	color: string;
-	size: string;
-	price: number;
-	quantity: number;
-};
-
-const initialItems: CartItem[] = [
-	{
-		id: "navy-flow-set",
-		name: "Navy Flow Set",
-		image: "/product-images/sora-flow-set-navy.png",
-		color: "Navy",
-		size: "M",
-		price: 72,
-		quantity: 1,
-	},
-	{
-		id: "black-charm-set",
-		name: "Black Charm Set",
-		image: "/product-images/sora-charm-set-black.png",
-		color: "Black",
-		size: "S",
-		price: 64,
-		quantity: 2,
-	},
-];
+import { useCartStore } from "@/lib/cart-store";
 
 const SHIPPING_FEE = 8;
 
 export default function CartSection() {
-	const [items, setItems] = useState<CartItem[]>(initialItems);
+	const items = useCartStore((state) => state.items);
+	const updateQuantity = useCartStore((state) => state.updateQuantity);
+	const removeItem = useCartStore((state) => state.removeItem);
 	const [promoCode, setPromoCode] = useState("");
-
-	const updateQuantity = (id: string, delta: number) => {
-		setItems((prev) =>
-			prev
-				.map((item) => (item.id === id ? { ...item, quantity: item.quantity + delta } : item))
-				.filter((item) => item.quantity > 0)
-		);
-	};
-
-	const removeItem = (id: string) => {
-		setItems((prev) => prev.filter((item) => item.id !== id));
-	};
 
 	const subtotal = items.reduce((sum, item) => sum + item.price * item.quantity, 0);
 	const shipping = items.length > 0 ? SHIPPING_FEE : 0;
@@ -100,9 +60,11 @@ export default function CartSection() {
 												<h3 className="font-montserrat text-lg font-bold uppercase leading-snug text-secondary">
 													{item.name}
 												</h3>
-												<p className="mt-1 text-xs uppercase tracking-wide text-secondary/70">
-													{item.color} / {item.size}
-												</p>
+												{item.variant && (
+													<p className="mt-1 text-xs uppercase tracking-wide text-secondary/70">
+														{item.variant}
+													</p>
+												)}
 											</div>
 											<div className="flex items-center justify-between gap-3">
 												<div className="flex items-center gap-3">

@@ -1,4 +1,8 @@
+"use client";
+
+import { useState } from "react";
 import Image from "next/image";
+import { useCartStore } from "@/lib/cart-store";
 
 export type Product = {
 	name: string;
@@ -8,6 +12,15 @@ export type Product = {
 };
 
 export default function ProductCard({ name, price, image, badge }: Product) {
+	const addItem = useCartStore((state) => state.addItem);
+	const [justAdded, setJustAdded] = useState(false);
+
+	const handleAddToCart = () => {
+		addItem({ id: name, name, price, image });
+		setJustAdded(true);
+		window.setTimeout(() => setJustAdded(false), 1500);
+	};
+
 	return (
 		<article className="group">
 			<div className="relative aspect-4/5 w-full">
@@ -35,9 +48,15 @@ export default function ProductCard({ name, price, image, badge }: Product) {
 				</h3>
 				<button
 					type="button"
-					className="shrink-0 rounded-full border border-primary px-4 py-1.5 font-montserrat text-xs uppercase tracking-wide text-primary transition-colors duration-300 hover:bg-primary hover:text-secondary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-secondary"
+					onClick={handleAddToCart}
+					aria-label={justAdded ? `${name} added to cart` : `Add ${name} to cart`}
+					className={`shrink-0 whitespace-nowrap rounded-full border px-4 py-1.5 font-montserrat text-xs uppercase tracking-wide transition-colors duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-secondary ${
+						justAdded
+							? "border-accent bg-accent text-secondary"
+							: "border-primary text-primary hover:bg-primary hover:text-secondary"
+					}`}
 				>
-					Add to cart
+					{justAdded ? "Added ✓" : "Add to cart"}
 				</button>
 			</div>
 		</article>

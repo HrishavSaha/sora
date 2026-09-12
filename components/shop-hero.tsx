@@ -1,11 +1,31 @@
+"use client";
+
+import { useState } from "react";
 import Image from "next/image";
+import { useCartStore } from "@/lib/cart-store";
+
+const FEATURED_PRODUCT = {
+	id: "Black Flow Capris",
+	name: "Black Flow Capris",
+	price: 58,
+	image: "/product-images/sora-flow-set-black.png",
+};
 
 export default function ShopHero() {
+	const addItem = useCartStore((state) => state.addItem);
+	const [justAdded, setJustAdded] = useState(false);
+
+	const handleAddToCart = () => {
+		addItem(FEATURED_PRODUCT);
+		setJustAdded(true);
+		window.setTimeout(() => setJustAdded(false), 1500);
+	};
+
 	return (
 		<section className="grid md:min-h-[80vh] md:grid-cols-2">
 			<div className="relative min-h-[60vh] bg-secondary md:min-h-full">
 				<Image
-					src="/product-images/sora-flow-set-black.png"
+					src={FEATURED_PRODUCT.image}
 					alt="Model wearing the Black Flow Capris"
 					fill
 					priority
@@ -26,10 +46,12 @@ export default function ShopHero() {
 					Flow Collection
 				</p>
 				<h1 className="mt-3 font-montserrat text-4xl font-bold uppercase leading-tight tracking-tight text-secondary md:text-5xl">
-					Black Flow Capris
+					{FEATURED_PRODUCT.name}
 				</h1>
 				<div className="mt-6 border-y border-secondary/50 py-4">
-					<span className="font-montserrat text-2xl font-semibold text-secondary">$58</span>
+					<span className="font-montserrat text-2xl font-semibold text-secondary">
+						${FEATURED_PRODUCT.price}
+					</span>
 				</div>
 				<p className="mt-6 max-w-sm text-sm leading-relaxed text-secondary/80 md:text-base">
 					Cropped-length leggings with a striped foldover waistband. Soft, breathable
@@ -37,9 +59,12 @@ export default function ShopHero() {
 				</p>
 				<button
 					type="button"
-					className="mt-10 inline-flex w-fit items-center justify-center rounded-full bg-secondary px-8 py-3 font-montserrat text-sm font-medium uppercase tracking-[0.15em] text-primary transition-transform duration-300 hover:-translate-y-0.5 active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-primary"
+					onClick={handleAddToCart}
+					className={`mt-10 inline-flex w-fit items-center justify-center rounded-full px-8 py-3 font-montserrat text-sm font-medium uppercase tracking-[0.15em] transition-transform duration-300 hover:-translate-y-0.5 active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-primary ${
+						justAdded ? "bg-accent text-secondary" : "bg-secondary text-primary"
+					}`}
 				>
-					Add to Cart
+					{justAdded ? "Added to Cart ✓" : "Add to Cart"}
 				</button>
 			</div>
 		</section>

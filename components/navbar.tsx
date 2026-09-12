@@ -3,6 +3,7 @@
 import { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
+import { useCartCount } from "@/lib/cart-store";
 
 const navLinks = [
 	{ href: "/", label: "Home" },
@@ -17,6 +18,7 @@ type NavbarProps = {
 
 export default function Navbar({ variant = "solid" }: NavbarProps) {
 	const [open, setOpen] = useState(false);
+	const cartCount = useCartCount();
 	const isTransparent = variant === "transparent";
 
 	const contentColor = isTransparent ? "text-secondary" : "text-primary";
@@ -55,8 +57,8 @@ export default function Navbar({ variant = "solid" }: NavbarProps) {
 				<div className="flex items-center gap-5">
 					<Link
 						href="/cart"
-						aria-label="View cart"
-						className={`rounded-full transition-opacity hover:opacity-70 ${focusRing}`}
+						aria-label={`View cart${cartCount > 0 ? ` (${cartCount} item${cartCount === 1 ? "" : "s"})` : ""}`}
+						className={`relative rounded-full transition-opacity hover:opacity-70 ${focusRing}`}
 					>
 						<Image
 							src="/vectors/cart.svg"
@@ -66,6 +68,11 @@ export default function Navbar({ variant = "solid" }: NavbarProps) {
 							height={24}
 							className={logoFilter}
 						/>
+						{cartCount > 0 && (
+							<span className="absolute -right-2 -top-2 flex h-4 w-4 items-center justify-center rounded-full bg-accent text-[10px] font-montserrat font-semibold text-secondary">
+								{cartCount}
+							</span>
+						)}
 					</Link>
 					<button
 						type="button"
