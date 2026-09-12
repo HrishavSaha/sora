@@ -18,7 +18,11 @@ type NavbarProps = {
 export default function Navbar({ variant = "solid" }: NavbarProps) {
 	const [open, setOpen] = useState(false);
 	const isTransparent = variant === "transparent";
+
+	const contentColor = isTransparent ? "text-secondary" : "text-primary";
 	const barColor = isTransparent ? "bg-secondary" : "bg-primary";
+	const logoFilter = isTransparent ? "brightness-0 invert" : "";
+	const mobileBackdrop = isTransparent ? "rounded-2xl bg-primary/95 backdrop-blur-sm" : "";
 	const focusRing = isTransparent
 		? "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-secondary focus-visible:ring-offset-0"
 		: "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-secondary";
@@ -26,9 +30,7 @@ export default function Navbar({ variant = "solid" }: NavbarProps) {
 	return (
 		<nav
 			className={`px-6 py-5 md:px-12 md:py-6 ${
-				isTransparent
-					? "absolute inset-x-0 top-0 z-20 bg-transparent"
-					: "relative bg-secondary"
+				isTransparent ? "absolute inset-x-0 top-0 z-20 bg-transparent" : "relative bg-secondary"
 			}`}
 		>
 			<div className="flex items-center justify-between">
@@ -37,13 +39,9 @@ export default function Navbar({ variant = "solid" }: NavbarProps) {
 					alt="Sora Wear"
 					width={120}
 					height={70}
-					className={isTransparent ? "h-11 w-auto brightness-0 invert md:h-14" : "h-11 w-auto md:h-14"}
+					className={`h-11 w-auto md:h-14 ${logoFilter}`}
 				/>
-				<div
-					className={`hidden gap-10 text-sm font-montserrat font-medium uppercase tracking-[0.2em] md:flex ${
-						isTransparent ? "text-secondary" : "text-primary"
-					}`}
-				>
+				<div className={`hidden gap-10 text-sm font-montserrat font-medium uppercase tracking-[0.2em] md:flex ${contentColor}`}>
 					{navLinks.map((link) => (
 						<Link
 							key={link.href}
@@ -66,7 +64,7 @@ export default function Navbar({ variant = "solid" }: NavbarProps) {
 							aria-hidden="true"
 							width={24}
 							height={24}
-							className={isTransparent ? "brightness-0 invert" : ""}
+							className={logoFilter}
 						/>
 					</button>
 					<button
@@ -98,7 +96,7 @@ export default function Navbar({ variant = "solid" }: NavbarProps) {
 			<div
 				className={`overflow-hidden transition-[max-height,opacity] duration-300 md:hidden ${
 					open ? "mt-6 max-h-60 opacity-100" : "max-h-0 opacity-0"
-				} ${isTransparent ? "rounded-2xl bg-primary/95 backdrop-blur-sm" : ""}`}
+				} ${mobileBackdrop}`}
 			>
 				<div className={`flex flex-col gap-5 ${isTransparent ? "p-6" : "pb-2 pt-2"}`}>
 					{navLinks.map((link) => (
@@ -106,9 +104,7 @@ export default function Navbar({ variant = "solid" }: NavbarProps) {
 							key={link.href}
 							href={link.href}
 							onClick={() => setOpen(false)}
-							className={`rounded-sm text-sm font-montserrat font-medium uppercase tracking-[0.2em] transition-opacity hover:opacity-70 ${focusRing} ${
-								isTransparent ? "text-secondary" : "text-primary"
-							}`}
+							className={`rounded-sm text-sm font-montserrat font-medium uppercase tracking-[0.2em] transition-opacity hover:opacity-70 ${focusRing} ${contentColor}`}
 						>
 							{link.label}
 						</Link>
