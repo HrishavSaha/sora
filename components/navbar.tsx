@@ -53,9 +53,9 @@ export default function Navbar({ variant = "solid" }: NavbarProps) {
 					))}
 				</div>
 				<div className="flex items-center gap-5">
-					<button
-						type="button"
-						aria-label="Open cart"
+					<Link
+						href="/cart"
+						aria-label="View cart"
 						className={`rounded-full transition-opacity hover:opacity-70 ${focusRing}`}
 					>
 						<Image
@@ -66,7 +66,7 @@ export default function Navbar({ variant = "solid" }: NavbarProps) {
 							height={24}
 							className={logoFilter}
 						/>
-					</button>
+					</Link>
 					<button
 						type="button"
 						onClick={() => setOpen((prev) => !prev)}
