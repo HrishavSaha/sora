@@ -14,7 +14,7 @@ export default function BrandStatement() {
 			/>
 			<div className="reveal-on-scroll relative z-10 mx-auto max-w-7xl px-8 md:px-12">
 				<div className="max-w-2xl">
-					<h2 className="font-montserrat text-3xl font-semibold leading-[1.2] text-secondary sm:text-4xl md:text-5xl">
+					<h2 className="font-montserrat text-3xl font-bold leading-[1.2] text-secondary sm:text-4xl md:text-5xl">
 						Your body knows the way.
 						<br />
 						Just breathe, move, and trust it.
@@ -25,7 +25,7 @@ export default function BrandStatement() {
 					</p>
 					<Link
 						href="/shop"
-						className="mt-12 inline-flex items-center justify-center rounded-full bg-accent px-8 py-3 font-montserrat text-sm font-medium uppercase tracking-[0.15em] text-secondary transition-transform duration-300 hover:-translate-y-0.5 active:scale-[0.98] md:mt-14"
+						className="mt-12 inline-flex items-center justify-center rounded-full bg-accent px-8 py-3 font-montserrat text-sm font-medium uppercase tracking-[0.15em] text-secondary transition-transform duration-300 hover:-translate-y-0.5 active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-secondary focus-visible:ring-offset-2 focus-visible:ring-offset-primary md:mt-14"
 					>
 						Shop the Collection
 					</Link>

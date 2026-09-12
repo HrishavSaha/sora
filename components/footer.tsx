@@ -1,6 +1,9 @@
 import Image from "next/image";
 import Link from "next/link";
 
+const focusRing =
+	"rounded-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-secondary focus-visible:ring-offset-2 focus-visible:ring-offset-primary";
+
 type FooterColumn = {
 	heading: string;
 	links: { label: string; href: string }[];
@@ -36,7 +39,7 @@ const footerColumns: FooterColumn[] = [
 function FooterColumnList({ heading, links }: FooterColumn) {
 	return (
 		<div>
-			<h3 className="font-montserrat text-xs uppercase tracking-[0.15em] text-secondary/50">
+			<h3 className="font-montserrat text-xs uppercase tracking-[0.15em] text-secondary/65">
 				{heading}
 			</h3>
 			<ul className="mt-5 space-y-3">
@@ -44,7 +47,7 @@ function FooterColumnList({ heading, links }: FooterColumn) {
 					<li key={link.label}>
 						<Link
 							href={link.href}
-							className="font-montserrat text-sm text-secondary/80 transition-colors hover:text-secondary"
+							className={`font-montserrat text-sm text-secondary/80 transition-colors hover:text-secondary ${focusRing}`}
 						>
 							{link.label}
 						</Link>
@@ -70,7 +73,7 @@ export default function Footer() {
 					<h3 className="mt-8 font-serif text-2xl italic leading-[1.1] text-secondary">
 						Stay in rhythm.
 					</h3>
-					<p className="mt-3 text-sm leading-relaxed text-secondary/60">
+					<p className="mt-3 text-sm leading-relaxed text-secondary/75">
 						Get early access to new drops and seasonal offers, straight to your inbox.
 					</p>
 					<form className="mt-6 flex max-w-sm gap-2">
@@ -86,7 +89,7 @@ export default function Footer() {
 						/>
 						<button
 							type="submit"
-							className="shrink-0 rounded-full bg-accent px-5 py-2.5 font-montserrat text-xs font-medium uppercase tracking-[0.15em] text-secondary transition-transform duration-300 hover:-translate-y-0.5 active:scale-[0.98]"
+							className={`shrink-0 rounded-full bg-accent px-5 py-2.5 font-montserrat text-xs font-medium uppercase tracking-[0.15em] text-secondary transition-transform duration-300 hover:-translate-y-0.5 active:scale-[0.98] ${focusRing}`}
 						>
 							Subscribe
 						</button>
@@ -100,13 +103,13 @@ export default function Footer() {
 				</div>
 			</div>
 
-			<div className="mx-auto flex max-w-7xl flex-col gap-4 pt-8 text-xs text-secondary/50 sm:flex-row sm:items-center sm:justify-between">
+			<div className="mx-auto flex max-w-7xl flex-col gap-4 pt-8 text-xs text-secondary/65 sm:flex-row sm:items-center sm:justify-between">
 				<p>&copy; {new Date().getFullYear()} Sora Wear. All rights reserved.</p>
 				<div className="flex gap-6">
-					<Link href="#" className="transition-colors hover:text-secondary/80">
+					<Link href="#" className={`transition-colors hover:text-secondary/80 ${focusRing}`}>
 						Privacy Policy
 					</Link>
-					<Link href="#" className="transition-colors hover:text-secondary/80">
+					<Link href="#" className={`transition-colors hover:text-secondary/80 ${focusRing}`}>
 						Terms of Service
 					</Link>
 				</div>

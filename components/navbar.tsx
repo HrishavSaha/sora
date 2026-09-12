@@ -19,6 +19,9 @@ export default function Navbar({ variant = "solid" }: NavbarProps) {
 	const [open, setOpen] = useState(false);
 	const isTransparent = variant === "transparent";
 	const barColor = isTransparent ? "bg-secondary" : "bg-primary";
+	const focusRing = isTransparent
+		? "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-secondary focus-visible:ring-offset-0"
+		: "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-secondary";
 
 	return (
 		<nav
@@ -31,7 +34,7 @@ export default function Navbar({ variant = "solid" }: NavbarProps) {
 			<div className="flex items-center justify-between">
 				<Image
 					src="/sora-logo.png"
-					alt="Logo of Sora wear"
+					alt="Sora Wear"
 					width={120}
 					height={70}
 					className={isTransparent ? "h-11 w-auto brightness-0 invert md:h-14" : "h-11 w-auto md:h-14"}
@@ -42,25 +45,36 @@ export default function Navbar({ variant = "solid" }: NavbarProps) {
 					}`}
 				>
 					{navLinks.map((link) => (
-						<Link key={link.href} href={link.href} className="transition-opacity hover:opacity-70">
+						<Link
+							key={link.href}
+							href={link.href}
+							className={`rounded-sm transition-opacity hover:opacity-70 ${focusRing}`}
+						>
 							{link.label}
 						</Link>
 					))}
 				</div>
 				<div className="flex items-center gap-5">
-					<Image
-						src="/vectors/cart.svg"
-						alt="Cart"
-						width={24}
-						height={24}
-						className={isTransparent ? "brightness-0 invert" : ""}
-					/>
+					<button
+						type="button"
+						aria-label="Open cart"
+						className={`rounded-full transition-opacity hover:opacity-70 ${focusRing}`}
+					>
+						<Image
+							src="/vectors/cart.svg"
+							alt=""
+							aria-hidden="true"
+							width={24}
+							height={24}
+							className={isTransparent ? "brightness-0 invert" : ""}
+						/>
+					</button>
 					<button
 						type="button"
 						onClick={() => setOpen((prev) => !prev)}
 						aria-label={open ? "Close menu" : "Open menu"}
 						aria-expanded={open}
-						className="flex h-6 w-7 flex-col justify-center gap-1.5 md:hidden"
+						className={`flex h-6 w-7 flex-col justify-center gap-1.5 rounded-sm md:hidden ${focusRing}`}
 					>
 						<span
 							className={`block h-0.5 w-full transition-transform duration-300 ${barColor} ${
@@ -92,7 +106,7 @@ export default function Navbar({ variant = "solid" }: NavbarProps) {
 							key={link.href}
 							href={link.href}
 							onClick={() => setOpen(false)}
-							className={`text-sm font-montserrat font-medium uppercase tracking-[0.2em] transition-opacity hover:opacity-70 ${
+							className={`rounded-sm text-sm font-montserrat font-medium uppercase tracking-[0.2em] transition-opacity hover:opacity-70 ${focusRing} ${
 								isTransparent ? "text-secondary" : "text-primary"
 							}`}
 						>

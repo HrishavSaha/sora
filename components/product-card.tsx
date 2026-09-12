@@ -31,7 +31,7 @@ export default function ProductCard({ name, price }: Product) {
 				</h3>
 				<button
 					type="button"
-					className="shrink-0 rounded-full border border-primary px-4 py-1.5 font-montserrat text-xs uppercase tracking-wide text-primary transition-colors duration-300 hover:bg-primary hover:text-secondary"
+					className="shrink-0 rounded-full border border-primary px-4 py-1.5 font-montserrat text-xs uppercase tracking-wide text-primary transition-colors duration-300 hover:bg-primary hover:text-secondary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-secondary"
 				>
 					Add to cart
 				</button>

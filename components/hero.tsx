@@ -12,6 +12,7 @@ export default function Hero() {
 				className="object-cover"
 			/>
 			<div className="relative z-10 flex flex-1 flex-col items-center justify-center px-6 pt-24 text-center">
+				<h1 className="sr-only">Sora Wear: Yoga Wear for Everyday Movement</h1>
 				<Image
 					src="/sora-logo.png"
 					alt="Sora Wear"

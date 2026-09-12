@@ -25,7 +25,7 @@ export default function NewArrivals() {
 				</h2>
 				<Link
 					href="/shop"
-					className="font-montserrat text-xs uppercase tracking-[0.15em] text-primary/70 underline decoration-primary/30 underline-offset-4 transition-colors hover:text-primary"
+					className="rounded-sm font-montserrat text-xs uppercase tracking-[0.15em] text-primary/70 underline decoration-primary/30 underline-offset-4 transition-colors hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-secondary"
 				>
 					View all
 				</Link>
