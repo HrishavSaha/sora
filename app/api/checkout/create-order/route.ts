@@ -73,63 +73,68 @@ export async function POST(request: Request) {
 		return NextResponse.json({ error: "A complete shipping address is required" }, { status: 400 });
 	}
 
-	// Prices are always looked up server-side; the client only tells us
-	// which product ids and quantities are in the cart.
-	const products = await getActiveProductsByIds(cart.map((line) => line.id));
-	const productById = new Map(products.map((product) => [product.id, product]));
+	try {
+		// Prices are always looked up server-side; the client only tells us
+		// which product ids and quantities are in the cart.
+		const products = await getActiveProductsByIds(cart.map((line) => line.id));
+		const productById = new Map(products.map((product) => [product.id, product]));
 
-	const missingId = cart.find((line) => !productById.has(line.id));
-	if (missingId) {
-		return NextResponse.json({ error: `Unknown or inactive product: ${missingId.id}` }, { status: 400 });
+		const missingId = cart.find((line) => !productById.has(line.id));
+		if (missingId) {
+			return NextResponse.json({ error: `Unknown or inactive product: ${missingId.id}` }, { status: 400 });
+		}
+
+		const orderItems = cart.map((line) => {
+			const product = productById.get(line.id)!;
+			return { id: product.id, name: product.name, unitPrice: product.price, quantity: line.quantity };
+		});
+
+		const subtotal = orderItems.reduce((sum, item) => sum + item.unitPrice * item.quantity, 0);
+		const total = subtotal + SHIPPING_FEE;
+
+		const paypalOrder = await createPayPalOrder(orderItems, SHIPPING_FEE);
+
+		const supabase = createServiceClient();
+		const { data: order, error: orderError } = await supabase
+			.from("orders")
+			.insert({
+				paypal_order_id: paypalOrder.id,
+				status: "pending",
+				subtotal,
+				shipping: SHIPPING_FEE,
+				total,
+				customer_name: contact.name,
+				customer_email: contact.email,
+				shipping_street: shipping.street,
+				shipping_place: shipping.place,
+				shipping_number: shipping.number,
+				shipping_postcode: shipping.postcode,
+				shipping_country: shipping.country,
+			})
+			.select("id")
+			.single();
+
+		if (orderError) {
+			return NextResponse.json({ error: `Failed to record order: ${orderError.message}` }, { status: 500 });
+		}
+
+		const { error: itemsError } = await supabase.from("order_items").insert(
+			orderItems.map((item) => ({
+				order_id: order.id,
+				product_id: item.id,
+				name: item.name,
+				unit_price: item.unitPrice,
+				quantity: item.quantity,
+			}))
+		);
+
+		if (itemsError) {
+			return NextResponse.json({ error: `Failed to record order items: ${itemsError.message}` }, { status: 500 });
+		}
+
+		return NextResponse.json({ id: paypalOrder.id });
+	} catch (err) {
+		const message = err instanceof Error ? err.message : "Failed to create order";
+		return NextResponse.json({ error: message }, { status: 502 });
 	}
-
-	const orderItems = cart.map((line) => {
-		const product = productById.get(line.id)!;
-		return { id: product.id, name: product.name, unitPrice: product.price, quantity: line.quantity };
-	});
-
-	const subtotal = orderItems.reduce((sum, item) => sum + item.unitPrice * item.quantity, 0);
-	const total = subtotal + SHIPPING_FEE;
-
-	const paypalOrder = await createPayPalOrder(orderItems, SHIPPING_FEE);
-
-	const supabase = createServiceClient();
-	const { data: order, error: orderError } = await supabase
-		.from("orders")
-		.insert({
-			paypal_order_id: paypalOrder.id,
-			status: "pending",
-			subtotal,
-			shipping: SHIPPING_FEE,
-			total,
-			customer_name: contact.name,
-			customer_email: contact.email,
-			shipping_street: shipping.street,
-			shipping_place: shipping.place,
-			shipping_number: shipping.number,
-			shipping_postcode: shipping.postcode,
-			shipping_country: shipping.country,
-		})
-		.select("id")
-		.single();
-
-	if (orderError) {
-		return NextResponse.json({ error: `Failed to record order: ${orderError.message}` }, { status: 500 });
-	}
-
-	const { error: itemsError } = await supabase.from("order_items").insert(
-		orderItems.map((item) => ({
-			order_id: order.id,
-			product_id: item.id,
-			name: item.name,
-			unit_price: item.unitPrice,
-			quantity: item.quantity,
-		}))
-	);
-
-	if (itemsError) {
-		return NextResponse.json({ error: `Failed to record order items: ${itemsError.message}` }, { status: 500 });
-	}
-
-	return NextResponse.json({ id: paypalOrder.id });
 }

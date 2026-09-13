@@ -3,20 +3,14 @@
 import { useState } from "react";
 import Image from "next/image";
 import { useCartStore } from "@/lib/cart-store";
+import type { CatalogProduct } from "@/lib/products";
 
-const FEATURED_PRODUCT = {
-	id: "Black Flow Capris",
-	name: "Black Flow Capris",
-	price: 58,
-	image: "/product-images/sora-flow-set-black.png",
-};
-
-export default function ShopHero() {
+export default function ShopHero({ product }: { product: CatalogProduct }) {
 	const addItem = useCartStore((state) => state.addItem);
 	const [justAdded, setJustAdded] = useState(false);
 
 	const handleAddToCart = () => {
-		addItem(FEATURED_PRODUCT);
+		addItem(product);
 		setJustAdded(true);
 		window.setTimeout(() => setJustAdded(false), 1500);
 	};
@@ -25,8 +19,8 @@ export default function ShopHero() {
 		<section className="grid md:min-h-[80vh] md:grid-cols-2">
 			<div className="relative min-h-[60vh] bg-secondary md:min-h-full">
 				<Image
-					src={FEATURED_PRODUCT.image}
-					alt="Model wearing the Black Flow Capris"
+					src={product.image}
+					alt={`Model wearing the ${product.name}`}
 					fill
 					priority
 					sizes="(min-width: 768px) 50vw, 100vw"
@@ -46,11 +40,11 @@ export default function ShopHero() {
 					Flow Collection
 				</p>
 				<h1 className="mt-3 font-montserrat text-4xl font-bold uppercase leading-tight tracking-tight text-secondary md:text-5xl">
-					{FEATURED_PRODUCT.name}
+					{product.name}
 				</h1>
 				<div className="mt-6 border-y border-secondary/50 py-4">
 					<span className="font-montserrat text-2xl font-semibold text-secondary">
-						${FEATURED_PRODUCT.price}
+						${product.price}
 					</span>
 				</div>
 				<p className="mt-6 max-w-sm text-sm leading-relaxed text-secondary/80 md:text-base">

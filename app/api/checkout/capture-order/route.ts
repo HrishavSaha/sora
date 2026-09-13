@@ -10,26 +10,31 @@ export async function POST(request: Request) {
 		return NextResponse.json({ error: "orderID is required" }, { status: 400 });
 	}
 
-	const capture = await capturePayPalOrder(orderID);
-	const completed = capture.status === "COMPLETED";
+	try {
+		const capture = await capturePayPalOrder(orderID);
+		const completed = capture.status === "COMPLETED";
 
-	const supabase = createServiceClient();
-	const { error } = await supabase
-		.from("orders")
-		.update({
-			status: completed ? "completed" : "failed",
-			payer_email: capture.payer?.email_address ?? null,
-			updated_at: new Date().toISOString(),
-		})
-		.eq("paypal_order_id", orderID);
+		const supabase = createServiceClient();
+		const { error } = await supabase
+			.from("orders")
+			.update({
+				status: completed ? "completed" : "failed",
+				payer_email: capture.payer?.email_address ?? null,
+				updated_at: new Date().toISOString(),
+			})
+			.eq("paypal_order_id", orderID);
 
-	if (error) {
-		return NextResponse.json({ error: `Failed to update order: ${error.message}` }, { status: 500 });
+		if (error) {
+			return NextResponse.json({ error: `Failed to update order: ${error.message}` }, { status: 500 });
+		}
+
+		if (!completed) {
+			return NextResponse.json({ error: `Payment not completed: ${capture.status}` }, { status: 402 });
+		}
+
+		return NextResponse.json({ status: capture.status, orderID: capture.id });
+	} catch (err) {
+		const message = err instanceof Error ? err.message : "Failed to capture order";
+		return NextResponse.json({ error: message }, { status: 502 });
 	}
-
-	if (!completed) {
-		return NextResponse.json({ error: `Payment not completed: ${capture.status}` }, { status: 402 });
-	}
-
-	return NextResponse.json({ status: capture.status, orderID: capture.id });
 }
