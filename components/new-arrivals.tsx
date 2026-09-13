@@ -1,17 +1,11 @@
 import Image from "next/image";
 import Link from "next/link";
-import ProductCard, { type Product } from "@/components/product-card";
+import ProductCard from "@/components/product-card";
+import { getActiveProducts } from "@/lib/products";
 
-const products: Product[] = [
-	{ name: "Navy Flow Set", price: 72, image: "/product-images/sora-flow-set-navy.png", badge: "New" },
-	{ name: "Black Charm Set", price: 64, image: "/product-images/sora-charm-set-black.png", badge: "New" },
-	{ name: "Brown Flow Shorts", price: 52, image: "/product-images/sora-flow-set-brown-shorts.png", badge: "New" },
-	{ name: "Cream Charm Set", price: 64, image: "/product-images/sora-charm-set-white.png", badge: "New" },
-	{ name: "Black Flow Capris", price: 58, image: "/product-images/sora-flow-set-black.png", badge: "New" },
-	{ name: "Cream Charm Shorts", price: 48, image: "/product-images/sora-charm-set-white-shorts.png", badge: "New" },
-];
+export default async function NewArrivals() {
+	const products = (await getActiveProducts()).filter((product) => product.badge === "New");
 
-export default function NewArrivals() {
 	return (
 		<section className="relative overflow-hidden bg-secondary px-6 py-28 md:px-12 md:py-40">
 			<Image
@@ -35,7 +29,7 @@ export default function NewArrivals() {
 			</div>
 			<div className="relative mx-auto mt-16 grid max-w-7xl grid-cols-1 gap-x-10 gap-y-20 sm:grid-cols-2 lg:grid-cols-3">
 				{products.map((product) => (
-					<ProductCard key={product.name} {...product} />
+					<ProductCard key={product.id} {...product} />
 				))}
 			</div>
 		</section>

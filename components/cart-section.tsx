@@ -4,8 +4,7 @@ import { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useCartStore } from "@/lib/cart-store";
-
-const SHIPPING_FEE = 8;
+import { SHIPPING_FEE } from "@/lib/pricing";
 
 export default function CartSection() {
 	const items = useCartStore((state) => state.items);
@@ -136,12 +135,12 @@ export default function CartSection() {
 								placeholder="Enter a promo code"
 								className="mt-6 w-full border-b border-primary/30 bg-transparent pb-2 text-sm text-primary outline-none placeholder:text-primary/60 focus:border-accent"
 							/>
-							<button
-								type="button"
-								className="mt-8 w-full rounded-full bg-primary px-8 py-3 font-montserrat text-sm font-medium uppercase tracking-[0.15em] text-secondary transition-transform duration-300 hover:-translate-y-0.5 active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-secondary"
+							<Link
+								href="/checkout"
+								className="mt-8 flex w-full items-center justify-center rounded-full bg-primary px-8 py-3 font-montserrat text-sm font-medium uppercase tracking-[0.15em] text-secondary transition-transform duration-300 hover:-translate-y-0.5 active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-secondary"
 							>
 								Check Out
-							</button>
+							</Link>
 						</div>
 					</div>
 				)}

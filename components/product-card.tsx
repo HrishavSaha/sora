@@ -2,23 +2,32 @@
 
 import { useState } from "react";
 import Image from "next/image";
+import { useRouter } from "next/navigation";
 import { useCartStore } from "@/lib/cart-store";
 
 export type Product = {
+	id: string;
 	name: string;
 	price: number;
 	image: string;
 	badge?: string;
 };
 
-export default function ProductCard({ name, price, image, badge }: Product) {
+export default function ProductCard({ id, name, price, image, badge }: Product) {
 	const addItem = useCartStore((state) => state.addItem);
+	const buyNow = useCartStore((state) => state.buyNow);
+	const router = useRouter();
 	const [justAdded, setJustAdded] = useState(false);
 
 	const handleAddToCart = () => {
-		addItem({ id: name, name, price, image });
+		addItem({ id, name, price, image });
 		setJustAdded(true);
 		window.setTimeout(() => setJustAdded(false), 1500);
+	};
+
+	const handleBuyNow = () => {
+		buyNow({ id, name, price, image });
+		router.push("/checkout");
 	};
 
 	return (
@@ -42,22 +51,32 @@ export default function ProductCard({ name, price, image, badge }: Product) {
 					${price}
 				</span>
 			</div>
-			<div className="flex items-center justify-between gap-3 pt-10 pb-2">
+			<div className="pt-10 pb-2">
 				<h3 className="font-montserrat text-base font-medium leading-snug text-primary">
 					{name}
 				</h3>
-				<button
-					type="button"
-					onClick={handleAddToCart}
-					aria-label={justAdded ? `${name} added to cart` : `Add ${name} to cart`}
-					className={`shrink-0 whitespace-nowrap rounded-full border px-4 py-1.5 font-montserrat text-xs uppercase tracking-wide transition-colors duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-secondary ${
-						justAdded
-							? "border-accent bg-accent text-secondary"
-							: "border-primary text-primary hover:bg-primary hover:text-secondary"
-					}`}
-				>
-					{justAdded ? "Added ✓" : "Add to cart"}
-				</button>
+				<div className="mt-4 flex items-center gap-2">
+					<button
+						type="button"
+						onClick={handleAddToCart}
+						aria-label={justAdded ? `${name} added to cart` : `Add ${name} to cart`}
+						className={`flex-1 whitespace-nowrap rounded-full border px-4 py-1.5 font-montserrat text-xs uppercase tracking-wide transition-colors duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-secondary ${
+							justAdded
+								? "border-accent bg-accent text-secondary"
+								: "border-primary text-primary hover:bg-primary hover:text-secondary"
+						}`}
+					>
+						{justAdded ? "Added ✓" : "Add to cart"}
+					</button>
+					<button
+						type="button"
+						onClick={handleBuyNow}
+						aria-label={`Buy ${name} now`}
+						className="flex-1 whitespace-nowrap rounded-full border border-primary bg-primary px-4 py-1.5 font-montserrat text-xs uppercase tracking-wide text-secondary transition-colors duration-300 hover:bg-primary/85 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-secondary"
+					>
+						Buy now
+					</button>
+				</div>
 			</div>
 		</article>
 	);

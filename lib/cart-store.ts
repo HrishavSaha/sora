@@ -13,6 +13,7 @@ export type CartItem = {
 type CartState = {
 	items: CartItem[];
 	addItem: (item: Omit<CartItem, "quantity">, quantity?: number) => void;
+	buyNow: (item: Omit<CartItem, "quantity">) => void;
 	updateQuantity: (id: string, delta: number) => void;
 	removeItem: (id: string) => void;
 	clearCart: () => void;
@@ -36,6 +37,9 @@ export const useCartStore = create<CartState>()(
 					}
 					return { items: [...state.items, { ...item, quantity }] };
 				}),
+			// Replaces the cart with just this item so checkout reflects only
+			// this purchase, independent of anything already in the cart.
+			buyNow: (item) => set({ items: [{ ...item, quantity: 1 }] }),
 			updateQuantity: (id, delta) =>
 				set((state) => ({
 					items: state.items
