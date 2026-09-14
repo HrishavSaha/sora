@@ -5,7 +5,6 @@ import Link from "next/link";
 import Script from "next/script";
 import { useRouter } from "next/navigation";
 import { useCartStore } from "@/lib/cart-store";
-import { SHIPPING_FEE } from "@/lib/pricing";
 
 declare global {
 	interface Window {
@@ -48,7 +47,7 @@ const cardTitle = "font-serif text-2xl italic text-primary";
 const cardSubtext = "mt-1 text-sm text-primary/60";
 const fieldLabel = "sr-only";
 
-export default function CheckoutSection() {
+export default function CheckoutSection({ shippingFee }: { shippingFee: number }) {
 	const items = useCartStore((state) => state.items);
 	const clearCart = useCartStore((state) => state.clearCart);
 	const router = useRouter();
@@ -59,7 +58,7 @@ export default function CheckoutSection() {
 	const [errorMessage, setErrorMessage] = useState("");
 
 	const subtotal = items.reduce((sum, item) => sum + item.price * item.quantity, 0);
-	const shipping = items.length > 0 ? SHIPPING_FEE : 0;
+	const shipping = items.length > 0 ? shippingFee : 0;
 	const total = subtotal + shipping;
 
 	const clientId = process.env.NEXT_PUBLIC_PAYPAL_CLIENT_ID;

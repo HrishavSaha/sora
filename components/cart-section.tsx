@@ -4,16 +4,15 @@ import { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useCartStore } from "@/lib/cart-store";
-import { SHIPPING_FEE } from "@/lib/pricing";
 
-export default function CartSection() {
+export default function CartSection({ shippingFee }: { shippingFee: number }) {
 	const items = useCartStore((state) => state.items);
 	const updateQuantity = useCartStore((state) => state.updateQuantity);
 	const removeItem = useCartStore((state) => state.removeItem);
 	const [promoCode, setPromoCode] = useState("");
 
 	const subtotal = items.reduce((sum, item) => sum + item.price * item.quantity, 0);
-	const shipping = items.length > 0 ? SHIPPING_FEE : 0;
+	const shipping = items.length > 0 ? shippingFee : 0;
 	const total = subtotal + shipping;
 
 	return (

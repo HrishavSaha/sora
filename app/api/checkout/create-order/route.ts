@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { createPayPalOrder } from "@/lib/paypal";
 import { getActiveProductsByIds } from "@/lib/products";
 import { createServiceClient } from "@/lib/supabase/server";
-import { SHIPPING_FEE } from "@/lib/pricing";
+import { getShippingFee } from "@/lib/pricing";
 
 type CartLine = { id: string; quantity: number };
 
@@ -90,9 +90,10 @@ export async function POST(request: Request) {
 		});
 
 		const subtotal = orderItems.reduce((sum, item) => sum + item.unitPrice * item.quantity, 0);
-		const total = subtotal + SHIPPING_FEE;
+		const shippingFee = await getShippingFee();
+		const total = subtotal + shippingFee;
 
-		const paypalOrder = await createPayPalOrder(orderItems, SHIPPING_FEE);
+		const paypalOrder = await createPayPalOrder(orderItems, shippingFee);
 
 		const supabase = createServiceClient();
 		const { data: order, error: orderError } = await supabase
@@ -101,7 +102,7 @@ export async function POST(request: Request) {
 				paypal_order_id: paypalOrder.id,
 				status: "pending",
 				subtotal,
-				shipping: SHIPPING_FEE,
+				shipping: shippingFee,
 				total,
 				customer_name: contact.name,
 				customer_email: contact.email,
