@@ -9,6 +9,11 @@ export const metadata: Metadata = {
 	title: "Shop",
 };
 
+// Product prices come from Supabase and can change at any time; without this,
+// Next.js would prerender this page once at build time and keep serving
+// whatever prices existed then.
+export const dynamic = "force-dynamic";
+
 export default async function Shop() {
 	const products = await getActiveProducts();
 	const featured = products.find((product) => product.id === "black-flow-capris") ?? products[0];
