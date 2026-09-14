@@ -83,6 +83,53 @@ export async function createPayPalOrder(items: PayPalOrderItem[], shipping: numb
 	return (await response.json()) as { id: string; status: string };
 }
 
+export type PayPalWebhookHeaders = {
+	authAlgo: string;
+	certUrl: string;
+	transmissionId: string;
+	transmissionSig: string;
+	transmissionTime: string;
+};
+
+/**
+ * Asks PayPal to verify a webhook delivery's signature. PayPal does the
+ * actual cryptographic verification server-side — we just forward the
+ * signing headers and the parsed event body, authenticated with our own
+ * OAuth token, so there's nothing to get wrong implementing RSA/cert
+ * verification by hand.
+ */
+export async function verifyPayPalWebhookSignature(
+	headers: PayPalWebhookHeaders,
+	webhookEvent: unknown
+): Promise<boolean> {
+	const webhookId = getEnv("PAYPAL_WEBHOOK_ID");
+	const accessToken = await getAccessToken();
+
+	const response = await fetch(`${getApiBase()}/v1/notifications/verify-webhook-signature`, {
+		method: "POST",
+		headers: {
+			Authorization: `Bearer ${accessToken}`,
+			"Content-Type": "application/json",
+		},
+		body: JSON.stringify({
+			auth_algo: headers.authAlgo,
+			cert_url: headers.certUrl,
+			transmission_id: headers.transmissionId,
+			transmission_sig: headers.transmissionSig,
+			transmission_time: headers.transmissionTime,
+			webhook_id: webhookId,
+			webhook_event: webhookEvent,
+		}),
+	});
+
+	if (!response.ok) {
+		throw new Error(`PayPal webhook verification request failed: ${response.status} ${await response.text()}`);
+	}
+
+	const data = (await response.json()) as { verification_status: string };
+	return data.verification_status === "SUCCESS";
+}
+
 export async function capturePayPalOrder(paypalOrderId: string) {
 	const accessToken = await getAccessToken();
 
