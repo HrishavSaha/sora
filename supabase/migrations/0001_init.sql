@@ -1,4 +1,4 @@
--- Products, orders, and order line items for the Sora Wear PayPal checkout.
+-- Products, orders, and order line items for the Sora Wear Stripe checkout.
 --
 -- The app talks to Supabase using the secret key from a Next.js Route
 -- Handler only (never the browser), which bypasses RLS. RLS is still left
@@ -23,7 +23,7 @@ create table if not exists products (
 
 create table if not exists orders (
 	id uuid primary key default gen_random_uuid(),
-	paypal_order_id text not null unique,
+	stripe_order_id text not null unique,
 	status text not null default 'pending' check (status in ('pending', 'completed', 'failed')),
 	subtotal numeric(10, 2) not null,
 	shipping numeric(10, 2) not null,

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useState } from "react";
 import Link from "next/link";
 import { useCartStore } from "@/lib/cart-store";
 
@@ -39,7 +39,6 @@ export default function CheckoutSection({ shippingFee }: { shippingFee: number }
 	const [form, setForm] = useState<FormState>(initialForm);
 	const [status, setStatus] = useState<Status>("idle");
 	const [errorMessage, setErrorMessage] = useState("");
-	const [canPay, setCanPay] = useState<boolean>(false);
 
 	const subtotal = items.reduce((sum, item) => sum + item.price * item.quantity, 0);
 	const shipping = items.length > 0 ? shippingFee : 0;
@@ -53,17 +52,16 @@ export default function CheckoutSection({ shippingFee }: { shippingFee: number }
 		form.postcode.trim().length > 0 &&
 		form.country.trim().length > 0;
 
-	useEffect(() => {
-		setCanPay(isContactValid && isShippingValid);
-	}, [isContactValid, isShippingValid]);
-	
+	const canPay = isContactValid && isShippingValid;
 
 	const updateField = (field: keyof FormState) => (event: React.ChangeEvent<HTMLInputElement>) =>
 		setForm((prev) => ({ ...prev, [field]: event.target.value }));
 
 	const handleCheckout = async () => {
 		const cartItems = items;
-		
+		setStatus("processing");
+		setErrorMessage("");
+
 		try {
       const response = await fetch("/api/checkout-sessions", {
         method: "POST",
@@ -82,15 +80,14 @@ export default function CheckoutSection({ shippingFee }: { shippingFee: number }
         }),
       });
 
-			clearCart();
-
       const data = await response.json();
       if (!response.ok) throw new Error(data.error ?? "Checkout failed");
 
+			clearCart();
       window.location.href = data.url; // Redirect to Stripe's hosted Checkout page
     } catch (err) {
-      console.error(err);
-      // show an error message to the user here
+			setStatus("error");
+			setErrorMessage(err instanceof Error ? err.message : "Checkout failed");
     }
 	}
 
