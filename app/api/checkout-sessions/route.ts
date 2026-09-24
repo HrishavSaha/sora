@@ -1,18 +1,9 @@
-import Stripe from "stripe";
 import { NextResponse } from "next/server";
 import { parseCheckoutSessionRequest } from "@/lib/checkout";
 import { getActiveProductsByIds } from "@/lib/products";
 import { createServiceClient } from "@/lib/supabase/server";
 import { getShippingFee } from "@/lib/pricing";
-
-function createStripeClient() {
-	const secretKey = process.env.STRIPE_SECRET_KEY;
-	if (!secretKey) {
-		throw new Error("Missing STRIPE_SECRET_KEY environment variable");
-	}
-
-	return new Stripe(secretKey);
-}
+import { createStripeClient } from "@/lib/stripe";
 
 export async function POST(request: Request) {
 	const checkout = parseCheckoutSessionRequest(await request.json().catch(() => null));
