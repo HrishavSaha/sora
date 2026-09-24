@@ -1,79 +1,26 @@
 import Stripe from "stripe";
 import { NextResponse } from "next/server";
+import { parseCheckoutSessionRequest } from "@/lib/checkout";
 import { getActiveProductsByIds } from "@/lib/products";
 import { createServiceClient } from "@/lib/supabase/server";
 import { getShippingFee } from "@/lib/pricing";
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!);
+function createStripeClient() {
+	const secretKey = process.env.STRIPE_SECRET_KEY;
+	if (!secretKey) {
+		throw new Error("Missing STRIPE_SECRET_KEY environment variable");
+	}
 
-type CartLine = { id: string; quantity: number };
-
-type Contact = { name: string; email: string };
-
-type ShippingAddress = {
-	street: string;
-	place: string;
-	number: string;
-	postcode: string;
-	country: string;
-};
-
-function isValidCart(value: unknown): value is CartLine[] {
-	return (
-		Array.isArray(value) &&
-		value.length > 0 &&
-		value.every(
-			(line) =>
-				typeof line === "object" &&
-				line !== null &&
-				typeof (line as CartLine).id === "string" &&
-				Number.isInteger((line as CartLine).quantity) &&
-				(line as CartLine).quantity > 0
-		)
-	);
-}
-
-function isNonEmptyString(value: unknown): value is string {
-	return typeof value === "string" && value.trim().length > 0;
-}
-
-function isValidContact(value: unknown): value is Contact {
-	const contact = value as Partial<Contact> | null;
-	return (
-		!!contact &&
-		isNonEmptyString(contact.name) &&
-		isNonEmptyString(contact.email) &&
-		/^\S+@\S+\.\S+$/.test(contact.email)
-	);
-}
-
-function isValidShipping(value: unknown): value is ShippingAddress {
-	const shipping = value as Partial<ShippingAddress> | null;
-	return (
-		!!shipping &&
-		isNonEmptyString(shipping.street) &&
-		isNonEmptyString(shipping.place) &&
-		isNonEmptyString(shipping.number) &&
-		isNonEmptyString(shipping.postcode) &&
-		isNonEmptyString(shipping.country)
-	);
+	return new Stripe(secretKey);
 }
 
 export async function POST(request: Request) {
-	const body = await request.json().catch(() => null);
-	const cart = body?.items;
-	const contact = body?.contact;
-	const shipping = body?.shipping;
+	const checkout = parseCheckoutSessionRequest(await request.json().catch(() => null));
+	if (!checkout) {
+		return NextResponse.json({ error: "Invalid checkout details" }, { status: 400 });
+	}
 
-	if (!isValidCart(cart)) {
-		return NextResponse.json({ error: "Cart must be a non-empty list of { id, quantity }" }, { status: 400 });
-	}
-	if (!isValidContact(contact)) {
-		return NextResponse.json({ error: "A valid name and email are required" }, { status: 400 });
-	}
-	if (!isValidShipping(shipping)) {
-		return NextResponse.json({ error: "A complete shipping address is required" }, { status: 400 });
-	}
+	const { items: cart, contact, shipping } = checkout;
 
 	try {
 		const products = await getActiveProductsByIds(cart.map((line) => line.id));
@@ -107,12 +54,16 @@ export async function POST(request: Request) {
 			quantity: line.quantity
 		}));
 
-		const session = await stripe.checkout.sessions.create({
+		const session = await createStripeClient().checkout.sessions.create({
 			line_items,
 			mode: 'payment',
 			success_url: `${origin}/success?session_id={CHECKOUT_SESSION_ID}`,
 			cancel_url: origin
 		})
+
+		if (!session.url) {
+			throw new Error("Stripe did not return a checkout URL");
+		}
 
 		const supabase = createServiceClient();
 		const { data: order, error: orderError } = await supabase
@@ -157,37 +108,4 @@ export async function POST(request: Request) {
 		const message = err instanceof Error ? err.message : "Failed to create order";
 		return NextResponse.json({ error: message }, { status: 502 });
 	}
-
-  // try {
-  //   const { cartItems, returnUrl } = await request.json();
-  //   const origin = new URL(request.url).origin;
-
-  //   const line_items = cartItems.map((item: any) => ({
-  //     price_data: {
-  //       currency: "usd",
-  //       product_data: {
-  //         name: item.name,
-  //         // only include images if they're absolute URLs
-  //         ...(item.image?.startsWith("http") && { images: [item.image] }),
-  //       },
-  //       unit_amount: Math.round(item.price * 100),
-  //     },
-  //     quantity: item.quantity,
-  //   }));
-
-  //   const session = await stripe.checkout.sessions.create({
-  //     line_items,
-  //     mode: "payment",
-  //     success_url: `${origin}/success?session_id={CHECKOUT_SESSION_ID}`,
-  //     cancel_url: returnUrl?.startsWith("http") ? returnUrl : `${origin}${returnUrl ?? "/"}`,
-  //   });
-
-  //   return NextResponse.json({ url: session.url });
-  // } catch (err: any) {
-  //   console.error("Checkout error:", err);
-  //   return NextResponse.json(
-  //     { error: err.message ?? "Failed to create checkout session" },
-  //     { status: 500 }
-  //   );
-  // }
 }

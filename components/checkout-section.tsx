@@ -3,6 +3,11 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useCartStore } from "@/lib/cart-store";
+import {
+	getApiErrorMessage,
+	getCheckoutSessionUrl,
+	type CheckoutSessionRequest,
+} from "@/lib/checkout";
 
 type Status = "idle" | "processing" | "success" | "error";
 
@@ -63,28 +68,32 @@ export default function CheckoutSection({ shippingFee }: { shippingFee: number }
 		setErrorMessage("");
 
 		try {
+			const checkoutPayload: CheckoutSessionRequest = {
+				items: cartItems.map(({ id, quantity }) => ({ id, quantity })),
+				contact: { name: form.name, email: form.email },
+				shipping: {
+					street: form.street,
+					place: form.place,
+					number: form.number,
+					postcode: form.postcode,
+					country: form.country,
+				},
+			};
+
       const response = await fetch("/api/checkout-sessions", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          items: cartItems,
-					contact: { name: form.name, email: form.email },
-					shipping: {
-						street: form.street,
-						place: form.place,
-						number: form.number,
-						postcode: form.postcode,
-						country: form.country
-					},
-          returnUrl: window.location.href,
-        }),
+				body: JSON.stringify(checkoutPayload),
       });
 
-      const data = await response.json();
-      if (!response.ok) throw new Error(data.error ?? "Checkout failed");
+			const data: unknown = await response.json().catch(() => null);
+			if (!response.ok) throw new Error(getApiErrorMessage(data) ?? "Checkout failed");
+
+			const checkoutUrl = getCheckoutSessionUrl(data);
+			if (!checkoutUrl) throw new Error("Checkout service returned an invalid payment URL");
 
 			clearCart();
-      window.location.href = data.url; // Redirect to Stripe's hosted Checkout page
+			window.location.assign(checkoutUrl);
     } catch (err) {
 			setStatus("error");
 			setErrorMessage(err instanceof Error ? err.message : "Checkout failed");
