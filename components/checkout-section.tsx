@@ -2,21 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
-import Script from "next/script";
-import { useRouter } from "next/navigation";
 import { useCartStore } from "@/lib/cart-store";
-
-declare global {
-	interface Window {
-		paypal?: {
-			Buttons: (options: {
-				createOrder: () => Promise<string>;
-				onApprove: (data: { orderID: string }) => Promise<void>;
-				onError: (error: unknown) => void;
-			}) => { render: (container: HTMLElement) => void };
-		};
-	}
-}
 
 type Status = "idle" | "processing" | "success" | "error";
 
@@ -50,18 +36,14 @@ const fieldLabel = "sr-only";
 export default function CheckoutSection({ shippingFee }: { shippingFee: number }) {
 	const items = useCartStore((state) => state.items);
 	const clearCart = useCartStore((state) => state.clearCart);
-	const router = useRouter();
-	const buttonsContainer = useRef<HTMLDivElement>(null);
 	const [form, setForm] = useState<FormState>(initialForm);
-	const [scriptLoaded, setScriptLoaded] = useState(false);
 	const [status, setStatus] = useState<Status>("idle");
 	const [errorMessage, setErrorMessage] = useState("");
+	const [canPay, setCanPay] = useState<boolean>(false);
 
 	const subtotal = items.reduce((sum, item) => sum + item.price * item.quantity, 0);
 	const shipping = items.length > 0 ? shippingFee : 0;
 	const total = subtotal + shipping;
-
-	const clientId = process.env.NEXT_PUBLIC_PAYPAL_CLIENT_ID;
 
 	const isContactValid = form.name.trim().length > 0 && /^\S+@\S+\.\S+$/.test(form.email);
 	const isShippingValid =
@@ -70,77 +52,46 @@ export default function CheckoutSection({ shippingFee }: { shippingFee: number }
 		form.number.trim().length > 0 &&
 		form.postcode.trim().length > 0 &&
 		form.country.trim().length > 0;
-	const canPay = isContactValid && isShippingValid;
+
+	useEffect(() => {
+		setCanPay(isContactValid && isShippingValid);
+	}, [isContactValid, isShippingValid]);
+	
 
 	const updateField = (field: keyof FormState) => (event: React.ChangeEvent<HTMLInputElement>) =>
 		setForm((prev) => ({ ...prev, [field]: event.target.value }));
 
-	useEffect(() => {
-		if (!scriptLoaded || !canPay || !window.paypal || !buttonsContainer.current) return;
+	const handleCheckout = async () => {
+		const cartItems = items;
+		
+		try {
+      const response = await fetch("/api/checkout-sessions", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          items: cartItems,
+					contact: { name: form.name, email: form.email },
+					shipping: {
+						street: form.street,
+						place: form.place,
+						number: form.number,
+						postcode: form.postcode,
+						country: form.country
+					},
+          returnUrl: window.location.href,
+        }),
+      });
 
-		buttonsContainer.current.innerHTML = "";
-		window.paypal
-			.Buttons({
-				createOrder: async () => {
-					setStatus("processing");
-					setErrorMessage("");
-					const response = await fetch("/api/checkout/create-order", {
-						method: "POST",
-						headers: { "Content-Type": "application/json" },
-						body: JSON.stringify({
-							items: items.map((item) => ({ id: item.id, quantity: item.quantity })),
-							contact: { name: form.name, email: form.email },
-							shipping: {
-								street: form.street,
-								place: form.place,
-								number: form.number,
-								postcode: form.postcode,
-								country: form.country,
-							},
-						}),
-					});
-					const data = await response.json();
-					if (!response.ok) throw new Error(data.error ?? "Failed to create order");
-					return data.id as string;
-				},
-				onApprove: async (data) => {
-					const response = await fetch("/api/checkout/capture-order", {
-						method: "POST",
-						headers: { "Content-Type": "application/json" },
-						body: JSON.stringify({ orderID: data.orderID }),
-					});
-					const result = await response.json();
-					if (!response.ok) throw new Error(result.error ?? "Payment could not be captured");
-					clearCart();
-					setStatus("success");
-					router.refresh();
-				},
-				onError: (error) => {
-					setStatus("error");
-					setErrorMessage(error instanceof Error ? error.message : "Something went wrong with PayPal.");
-				},
-			})
-			.render(buttonsContainer.current);
-		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [scriptLoaded, canPay]);
+			clearCart();
 
-	if (status === "success") {
-		return (
-			<section className="bg-secondary px-6 py-20 md:px-12 md:py-28">
-				<div className="mx-auto max-w-2xl text-center">
-					<h1 className="font-serif text-4xl italic text-primary md:text-5xl">Thank you for your order</h1>
-					<p className="mt-4 text-primary/70">
-						Your payment was successful. A confirmation has been sent to your PayPal email.
-					</p>
-					<Link
-						href="/shop"
-						className="mt-10 inline-flex items-center justify-center rounded-full bg-primary px-8 py-3 font-montserrat text-sm font-medium uppercase tracking-[0.15em] text-secondary transition-transform duration-300 hover:-translate-y-0.5 active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-secondary"
-					>
-						Continue Shopping
-					</Link>
-				</div>
-			</section>
-		);
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error ?? "Checkout failed");
+
+      window.location.href = data.url; // Redirect to Stripe's hosted Checkout page
+    } catch (err) {
+      console.error(err);
+      // show an error message to the user here
+    }
 	}
 
 	if (items.length === 0) {
@@ -161,12 +112,6 @@ export default function CheckoutSection({ shippingFee }: { shippingFee: number }
 
 	return (
 		<section className="bg-secondary px-6 py-20 md:px-12 md:py-28">
-			{clientId && (
-				<Script
-					src={`https://www.paypal.com/sdk/js?client-id=${clientId}&currency=USD&disable-funding=card,credit`}
-					onLoad={() => setScriptLoaded(true)}
-				/>
-			)}
 			<div className="mx-auto max-w-6xl">
 				<div className="flex items-center gap-8">
 					<h1 className="font-montserrat text-4xl font-bold uppercase tracking-tight text-primary md:text-5xl">
@@ -310,21 +255,17 @@ export default function CheckoutSection({ shippingFee }: { shippingFee: number }
 							<span className="font-montserrat text-xl font-bold text-secondary">${total}</span>
 						</div>
 
-						<div className="mt-8 rounded-full bg-secondary px-6 py-3 text-center font-montserrat text-sm font-bold uppercase tracking-wide text-primary">
-							Pay with PayPal
-						</div>
-
-						{!clientId ? (
-							<p className="mt-6 rounded-xl bg-secondary/10 px-4 py-3 text-xs text-secondary/80">
-								PayPal isn&apos;t configured yet. Set NEXT_PUBLIC_PAYPAL_CLIENT_ID in .env.local to enable checkout.
-							</p>
-						) : !canPay ? (
-							<p className="mt-6 rounded-xl bg-secondary/10 px-4 py-3 text-xs text-secondary/80">
+						<button onClick={handleCheckout} disabled={!canPay} className="mt-8 rounded-full bg-secondary px-6 py-3 text-center font-montserrat text-sm font-bold uppercase tracking-wide text-primary">
+							{!canPay ? (
+								<p>
 								Fill in your contact info and shipping address to continue to payment.
-							</p>
-						) : (
-							<div className="mt-6 rounded-2xl bg-secondary p-4" ref={buttonsContainer} />
-						)}
+								</p>
+							) : (
+								<p>
+									Pay with Stripe
+								</p>
+							)}
+						</button>
 
 						{status === "processing" && (
 							<p className="mt-4 text-center text-xs uppercase tracking-wide text-secondary/70">
