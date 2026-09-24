@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { randomUUID } from "node:crypto";
 import { parseCheckoutSessionRequest } from "@/lib/checkout";
 import { getActiveProductsByIds } from "@/lib/products";
 import { createServiceClient } from "@/lib/supabase/server";
@@ -32,6 +33,7 @@ export async function POST(request: Request) {
 		const subtotal = orderItems.reduce((sum, item) => sum + item.unitPrice * item.quantity, 0);
 		const shippingFee = await getShippingFee();
 		const total = subtotal + shippingFee;
+		const checkoutReference = randomUUID();
 
 		// Implement stripe logic
 		const line_items = orderItems.map((line) => ({
@@ -49,7 +51,8 @@ export async function POST(request: Request) {
 			line_items,
 			mode: 'payment',
 			success_url: `${origin}/success?session_id={CHECKOUT_SESSION_ID}`,
-			cancel_url: origin
+			cancel_url: `${origin}/payment-failed?checkout_reference=${checkoutReference}`,
+			client_reference_id: checkoutReference,
 		})
 
 		if (!session.url) {
@@ -61,6 +64,7 @@ export async function POST(request: Request) {
 			.from("orders")
 			.insert({
 				stripe_order_id: session.id,
+				checkout_reference: checkoutReference,
 				status: "pending",
 				subtotal,
 				shipping: shippingFee,

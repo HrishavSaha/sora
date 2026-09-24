@@ -24,6 +24,7 @@ create table if not exists products (
 create table if not exists orders (
 	id uuid primary key default gen_random_uuid(),
 	stripe_order_id text not null unique,
+	checkout_reference uuid not null unique,
 	status text not null default 'pending' check (status in ('pending', 'completed', 'failed')),
 	subtotal numeric(10, 2) not null,
 	shipping numeric(10, 2) not null,
