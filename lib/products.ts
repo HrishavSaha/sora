@@ -5,6 +5,7 @@ export type Product = {
 	name: string;
 	price: number;
 	image: string;
+	sizes: string[];
 };
 
 export type CatalogProduct = Product & { category: string; badge?: string };
@@ -19,7 +20,7 @@ export async function getActiveProducts(): Promise<CatalogProduct[]> {
 	const supabase = createPublicClient();
 	const { data, error } = await supabase
 		.from("products")
-		.select("id, name, price, image, category, badge")
+		.select("id, name, price, image, category, badge, sizes")
 		.eq("active", true)
 		.order("created_at", { ascending: true });
 
@@ -30,6 +31,7 @@ export async function getActiveProducts(): Promise<CatalogProduct[]> {
 		name: row.name,
 		price: Number(row.price),
 		image: row.image,
+		sizes: row.sizes,
 		category: row.category,
 		badge: row.badge ?? undefined,
 	}));
@@ -47,7 +49,7 @@ export async function getActiveProductsByIds(ids: string[]): Promise<Product[]> 
 	const supabase = createServiceClient();
 	const { data, error } = await supabase
 		.from("products")
-		.select("id, name, price, image")
+		.select("id, name, price, image, sizes")
 		.eq("active", true)
 		.in("id", ids);
 
@@ -58,5 +60,6 @@ export async function getActiveProductsByIds(ids: string[]): Promise<Product[]> 
 		name: row.name,
 		price: Number(row.price),
 		image: row.image,
+		sizes: row.sizes,
 	}));
 }

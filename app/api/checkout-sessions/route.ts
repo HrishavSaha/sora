@@ -24,10 +24,23 @@ export async function POST(request: Request) {
 		if (missingId) {
 			return NextResponse.json({ error: `Unknown or inactive product: ${missingId.id}` }, { status: 400 });
 		}
+		const unavailableSize = cart.find((line) => !productById.get(line.id)!.sizes.includes(line.size));
+		if (unavailableSize) {
+			return NextResponse.json(
+				{ error: `Size ${unavailableSize.size} is unavailable for ${productById.get(unavailableSize.id)!.name}` },
+				{ status: 400 }
+			);
+		}
 
 		const orderItems = cart.map((line) => {
 			const product = productById.get(line.id)!;
-			return { id: product.id, name: product.name, unitPrice: product.price, quantity: line.quantity };
+			return {
+				id: product.id,
+				name: product.name,
+				size: line.size,
+				unitPrice: product.price,
+				quantity: line.quantity,
+			};
 		});
 
 		const subtotal = orderItems.reduce((sum, item) => sum + item.unitPrice * item.quantity, 0);
@@ -40,7 +53,7 @@ export async function POST(request: Request) {
 			price_data: {
 				currency: "usd",
 				product_data: {
-					name: line.name
+					name: `${line.name} (${line.size})`
 				},
 				unit_amount: Math.round(line.unitPrice * 100),
 			},
@@ -89,6 +102,7 @@ export async function POST(request: Request) {
 				order_id: order.id,
 				product_id: item.id,
 				name: item.name,
+				size: item.size,
 				unit_price: item.unitPrice,
 				quantity: item.quantity,
 			}))

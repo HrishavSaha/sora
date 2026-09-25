@@ -2,15 +2,17 @@
 
 import { useState } from "react";
 import Image from "next/image";
-import { useCartStore } from "@/lib/cart-store";
+import { PRODUCT_SIZES, type ProductSize, useCartStore } from "@/lib/cart-store";
 import type { CatalogProduct } from "@/lib/products";
 
 export default function ShopHero({ product }: { product: CatalogProduct }) {
 	const addItem = useCartStore((state) => state.addItem);
 	const [justAdded, setJustAdded] = useState(false);
+	const availableSizes = PRODUCT_SIZES.filter((size) => product.sizes.includes(size));
+	const [selectedSize, setSelectedSize] = useState<ProductSize>(availableSizes[0] ?? "M");
 
 	const handleAddToCart = () => {
-		addItem(product);
+		addItem({ ...product, size: selectedSize });
 		setJustAdded(true);
 		window.setTimeout(() => setJustAdded(false), 1500);
 	};
@@ -51,10 +53,33 @@ export default function ShopHero({ product }: { product: CatalogProduct }) {
 					Cropped-length leggings with a striped foldover waistband. Soft, breathable
 					fabric that moves with you through every pose.
 				</p>
+				<fieldset className="mt-6">
+					<legend className="font-montserrat text-xs uppercase tracking-[0.15em] text-secondary/75">
+						Size: {selectedSize}
+					</legend>
+					<div className="mt-3 flex gap-2" role="radiogroup" aria-label={`Select size for ${product.name}`}>
+						{availableSizes.map((size) => (
+							<button
+								key={size}
+								type="button"
+								role="radio"
+								aria-checked={selectedSize === size}
+								onClick={() => setSelectedSize(size)}
+								className={`flex h-8 min-w-8 items-center justify-center rounded-full border px-2 font-montserrat text-[11px] font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent ${
+									selectedSize === size
+										? "border-secondary bg-secondary text-primary"
+										: "border-secondary/45 text-secondary hover:border-secondary"
+								}`}
+							>
+								{size}
+							</button>
+						))}
+					</div>
+				</fieldset>
 				<button
 					type="button"
 					onClick={handleAddToCart}
-					className={`mt-10 inline-flex w-fit items-center justify-center rounded-full px-8 py-3 font-montserrat text-sm font-medium uppercase tracking-[0.15em] transition-transform duration-300 hover:-translate-y-0.5 active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-primary ${
+					className={`mt-8 inline-flex w-fit items-center justify-center rounded-full px-8 py-3 font-montserrat text-sm font-medium uppercase tracking-[0.15em] transition-transform duration-300 hover:-translate-y-0.5 active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-primary ${
 						justAdded ? "bg-accent text-secondary" : "bg-secondary text-primary"
 					}`}
 				>

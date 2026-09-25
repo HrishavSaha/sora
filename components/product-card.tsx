@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
-import { useCartStore } from "@/lib/cart-store";
+import { PRODUCT_SIZES, type ProductSize, useCartStore } from "@/lib/cart-store";
 
 export type Product = {
 	id: string;
@@ -11,22 +11,25 @@ export type Product = {
 	price: number;
 	image: string;
 	badge?: string;
+	sizes: string[];
 };
 
-export default function ProductCard({ id, name, price, image, badge }: Product) {
+export default function ProductCard({ id, name, price, image, badge, sizes }: Product) {
 	const addItem = useCartStore((state) => state.addItem);
 	const buyNow = useCartStore((state) => state.buyNow);
 	const router = useRouter();
 	const [justAdded, setJustAdded] = useState(false);
+	const availableSizes = PRODUCT_SIZES.filter((size) => sizes.includes(size));
+	const [selectedSize, setSelectedSize] = useState<ProductSize>(availableSizes[0] ?? "M");
 
 	const handleAddToCart = () => {
-		addItem({ id, name, price, image });
+		addItem({ id, name, price, image, size: selectedSize });
 		setJustAdded(true);
 		window.setTimeout(() => setJustAdded(false), 1500);
 	};
 
 	const handleBuyNow = () => {
-		buyNow({ id, name, price, image });
+		buyNow({ id, name, price, image, size: selectedSize });
 		router.push("/checkout");
 	};
 
@@ -55,6 +58,29 @@ export default function ProductCard({ id, name, price, image, badge }: Product) 
 				<h3 className="font-montserrat text-base font-medium leading-snug text-primary">
 					{name}
 				</h3>
+				<fieldset className="mt-4">
+					<legend className="font-montserrat text-[11px] uppercase tracking-wide text-primary/70">
+						Size: {selectedSize}
+					</legend>
+					<div className="mt-2 flex gap-1.5" role="radiogroup" aria-label={`Select size for ${name}`}>
+						{availableSizes.map((size) => (
+							<button
+								key={size}
+								type="button"
+								role="radio"
+								aria-checked={selectedSize === size}
+								onClick={() => setSelectedSize(size)}
+								className={`flex h-7 min-w-7 items-center justify-center rounded-full border px-1.5 font-montserrat text-[10px] font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent ${
+									selectedSize === size
+										? "border-primary bg-primary text-secondary"
+										: "border-primary/35 text-primary hover:border-primary"
+								}`}
+							>
+								{size}
+							</button>
+						))}
+					</div>
+				</fieldset>
 				<div className="mt-4 flex items-center gap-2">
 					<button
 						type="button"

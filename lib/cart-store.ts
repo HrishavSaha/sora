@@ -6,16 +6,19 @@ export type CartItem = {
 	name: string;
 	image: string;
 	price: number;
+	size: ProductSize;
 	quantity: number;
-	variant?: string;
 };
+
+export const PRODUCT_SIZES = ["XS", "S", "M", "L", "XL"] as const;
+export type ProductSize = (typeof PRODUCT_SIZES)[number];
 
 type CartState = {
 	items: CartItem[];
 	addItem: (item: Omit<CartItem, "quantity">, quantity?: number) => void;
 	buyNow: (item: Omit<CartItem, "quantity">) => void;
-	updateQuantity: (id: string, delta: number) => void;
-	removeItem: (id: string) => void;
+	updateQuantity: (id: string, size: ProductSize, delta: number) => void;
+	removeItem: (id: string, size: ProductSize) => void;
 	clearCart: () => void;
 };
 
@@ -25,11 +28,13 @@ export const useCartStore = create<CartState>()(
 			items: [],
 			addItem: (item, quantity = 1) =>
 				set((state) => {
-					const existing = state.items.find((cartItem) => cartItem.id === item.id);
+					const existing = state.items.find(
+						(cartItem) => cartItem.id === item.id && cartItem.size === item.size
+					);
 					if (existing) {
 						return {
 							items: state.items.map((cartItem) =>
-								cartItem.id === item.id
+								cartItem.id === item.id && cartItem.size === item.size
 									? { ...cartItem, quantity: cartItem.quantity + quantity }
 									: cartItem
 							),
@@ -40,16 +45,20 @@ export const useCartStore = create<CartState>()(
 			// Replaces the cart with just this item so checkout reflects only
 			// this purchase, independent of anything already in the cart.
 			buyNow: (item) => set({ items: [{ ...item, quantity: 1 }] }),
-			updateQuantity: (id, delta) =>
+			updateQuantity: (id, size, delta) =>
 				set((state) => ({
 					items: state.items
 						.map((cartItem) =>
-							cartItem.id === id ? { ...cartItem, quantity: cartItem.quantity + delta } : cartItem
+							cartItem.id === id && cartItem.size === size
+								? { ...cartItem, quantity: cartItem.quantity + delta }
+								: cartItem
 						)
 						.filter((cartItem) => cartItem.quantity > 0),
 				})),
-			removeItem: (id) =>
-				set((state) => ({ items: state.items.filter((cartItem) => cartItem.id !== id) })),
+			removeItem: (id, size) =>
+				set((state) => ({
+					items: state.items.filter((cartItem) => cartItem.id !== id || cartItem.size !== size),
+				})),
 			clearCart: () => set({ items: [] }),
 		}),
 		{ name: "sora-cart" }

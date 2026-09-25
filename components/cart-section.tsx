@@ -43,7 +43,7 @@ export default function CartSection({ shippingFee }: { shippingFee: number }) {
 							</p>
 							<ul className="mt-6 divide-y divide-secondary/20">
 								{items.map((item) => (
-									<li key={item.id} className="flex gap-5 py-6">
+								<li key={`${item.id}-${item.size}`} className="flex gap-5 py-6">
 										<div className="relative h-28 w-24 shrink-0 overflow-hidden rounded-xl bg-secondary">
 											<Image
 												src={item.image}
@@ -58,17 +58,15 @@ export default function CartSection({ shippingFee }: { shippingFee: number }) {
 												<h3 className="font-montserrat text-lg font-bold uppercase leading-snug text-secondary">
 													{item.name}
 												</h3>
-												{item.variant && (
-													<p className="mt-1 text-xs uppercase tracking-wide text-secondary/70">
-														{item.variant}
-													</p>
-												)}
+											<p className="mt-1 text-xs uppercase tracking-wide text-secondary/70">
+												Size: {item.size}
+											</p>
 											</div>
 											<div className="flex items-center justify-between gap-3">
 												<div className="flex items-center gap-3">
 													<button
 														type="button"
-														onClick={() => updateQuantity(item.id, -1)}
+														onClick={() => updateQuantity(item.id, item.size, -1)}
 														aria-label={`Decrease quantity of ${item.name}`}
 														className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full border border-secondary/50 text-secondary transition-colors hover:bg-secondary/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-secondary"
 													>
@@ -79,7 +77,7 @@ export default function CartSection({ shippingFee }: { shippingFee: number }) {
 													</span>
 													<button
 														type="button"
-														onClick={() => updateQuantity(item.id, 1)}
+														onClick={() => updateQuantity(item.id, item.size, 1)}
 														aria-label={`Increase quantity of ${item.name}`}
 														className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full border border-secondary/50 text-secondary transition-colors hover:bg-secondary/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-secondary"
 													>
@@ -92,7 +90,7 @@ export default function CartSection({ shippingFee }: { shippingFee: number }) {
 											</div>
 											<button
 												type="button"
-												onClick={() => removeItem(item.id)}
+												onClick={() => removeItem(item.id, item.size)}
 												className="w-fit rounded-sm font-montserrat text-xs uppercase tracking-wide text-secondary/70 underline decoration-secondary/40 underline-offset-4 transition-colors hover:text-secondary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-secondary"
 											>
 												Remove

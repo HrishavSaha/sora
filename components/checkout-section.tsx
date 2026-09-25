@@ -69,7 +69,7 @@ export default function CheckoutSection({ shippingFee }: { shippingFee: number }
 
 		try {
 			const checkoutPayload: CheckoutSessionRequest = {
-				items: cartItems.map(({ id, quantity }) => ({ id, quantity })),
+				items: cartItems.map(({ id, size, quantity }) => ({ id, size, quantity })),
 				contact: { name: form.name, email: form.email },
 				shipping: {
 					street: form.street,
@@ -237,9 +237,10 @@ export default function CheckoutSection({ shippingFee }: { shippingFee: number }
 						<p className="font-serif text-2xl italic text-secondary">Order Summary</p>
 						<ul className="mt-6 space-y-3 border-b border-secondary/20 pb-6">
 							{items.map((item) => (
-								<li key={item.id} className="flex items-center justify-between gap-4 text-sm text-secondary/90">
+								<li key={`${item.id}-${item.size}`} className="flex items-center justify-between gap-4 text-sm text-secondary/90">
 									<span>
 										{item.name}
+										<span className="text-secondary/60"> · {item.size}</span>
 										<span className="text-secondary/60"> &times; {item.quantity}</span>
 									</span>
 									<span className="font-montserrat font-semibold">${item.price * item.quantity}</span>

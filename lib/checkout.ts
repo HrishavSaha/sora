@@ -1,5 +1,6 @@
 export type CheckoutCartLine = {
 	id: string;
+	size: string;
 	quantity: number;
 };
 
@@ -36,6 +37,7 @@ function isCartLine(value: unknown): value is CheckoutCartLine {
 	return (
 		isRecord(value) &&
 		isNonEmptyString(value.id) &&
+		isNonEmptyString(value.size) &&
 		typeof value.quantity === "number" &&
 		Number.isInteger(value.quantity) &&
 		value.quantity > 0
